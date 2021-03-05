@@ -1,11 +1,13 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'cancel-workflows-action'
+description: 'Action to cancel workflows'
+author: 'cactusoft-ca'
 inputs:
-  milliseconds: # change this
+  github_token:  # github token
+    description: 'Token to authentify to github'
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+  workflow_id:  # id of input
+    description: 'The id of workflow or filename'
+    required: true
 runs:
   using: 'node12'
   main: 'dist/index.js'
