@@ -24,8 +24,8 @@ async function main() {
   core.debug(`GITHUB_RUN_ID ${branch}`)
   let headSha = sha
   core.debug(`headSha ${headSha}`)
-  console.log(`payload.pull_request ${payload.pull_request}`)
-  console.log(`payload.workflow_run ${payload.workflow_run}`)
+  console.log(`payload.pull_request ${JSON.stringify(payload.pull_request)}`)
+  console.log(`payload.workflow_run ${JSON.stringify(payload.workflow_run)}`)
   if (payload.pull_request) {
     branch = payload.pull_request.head.ref
     headSha = payload.pull_request.head.sha
