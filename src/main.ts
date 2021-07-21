@@ -75,7 +75,7 @@ async function main() {
         core.debug(`listWorkflowRuns: ${JSON.stringify(data)}`)
 
         const branchWorkflows = data.workflow_runs.filter(function(run) {
-          if(!!current_run.pull_requests && !!current_run.pull_requests.length){
+          if(current_run.pull_requests?.length > 0){
             if(run.id !== current_run.id &&  run.pull_requests[0].id === current_run.pull_requests[0].id && run.status !== "completed"){
               return true
             }
