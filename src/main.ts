@@ -75,14 +75,17 @@ async function main() {
         core.debug(`listWorkflowRuns: ${JSON.stringify(data)}`)
 
         const branchWorkflows = data.workflow_runs.filter(function(run) {
-          if(current_run?.pull_requests?.length > 0){
-            console.log(`current_run.pull_requests ${JSON.stringify(current_run.pull_requests)}`)
-            if(run?.id !== current_run?.id &&  run?.pull_requests[0]?.id === current_run?.pull_requests[0]?.id && run?.status !== "completed"){
-              return true
-            }
+          if(!current_run) return;
+          if(!current_run.pull_requests) return;
+          if(current_run.pull_requests.length === 0) return;
+          const firstPr = current_run.pull_requests[0];
 
-            return false
+          console.log(`current_run.pull_requests ${JSON.stringify(firstPr)}`)
+
+          if(run?.id !== current_run?.id &&  run?.pull_requests[0].id === firstPr.id && run?.status !== "completed"){
+            return true
           }
+
           return false
         })
 
