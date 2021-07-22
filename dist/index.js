@@ -54,8 +54,8 @@ function main() {
         core.debug(`GITHUB_RUN_ID ${branch}`);
         let headSha = sha;
         core.debug(`headSha ${headSha}`);
-        console.log(`payload.pull_request ${payload.pull_request}`);
-        console.log(`payload.workflow_run ${payload.workflow_run}`);
+        console.log(`payload.pull_request ${JSON.stringify(payload.pull_request)}`);
+        console.log(`payload.workflow_run ${JSON.stringify(payload.workflow_run)}`);
         if (payload.pull_request) {
             branch = payload.pull_request.head.ref;
             headSha = payload.pull_request.head.sha;
@@ -100,11 +100,16 @@ function main() {
                 });
                 core.debug(`listWorkflowRuns: ${JSON.stringify(data)}`);
                 const branchWorkflows = data.workflow_runs.filter(function (run) {
-                    if (!!current_run.pull_requests && !!current_run.pull_requests.length) {
-                        if (run.id !== current_run.id && run.pull_requests[0].id === current_run.pull_requests[0].id && run.status !== "completed") {
-                            return true;
-                        }
-                        return false;
+                    if (!current_run)
+                        return;
+                    if (!current_run.pull_requests)
+                        return;
+                    if (current_run.pull_requests.length === 0)
+                        return;
+                    const firstPr = current_run.pull_requests[0];
+                    console.log(`current_run.pull_requests ${JSON.stringify(firstPr)}`);
+                    if ((run === null || run === void 0 ? void 0 : run.id) !== (current_run === null || current_run === void 0 ? void 0 : current_run.id) && (run === null || run === void 0 ? void 0 : run.pull_requests[0].id) === firstPr.id && (run === null || run === void 0 ? void 0 : run.status) !== "completed") {
+                        return true;
                     }
                     return false;
                 });
