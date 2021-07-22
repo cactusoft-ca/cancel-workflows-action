@@ -107,6 +107,12 @@ function main() {
                     if (current_run.pull_requests.length === 0)
                         return;
                     const firstPr = current_run.pull_requests[0];
+                    if (!run)
+                        return;
+                    if (!run.pull_requests)
+                        return;
+                    if (run.pull_requests.length === 0)
+                        return;
                     console.log(`current_run.pull_requests ${JSON.stringify(firstPr)}`);
                     if ((run === null || run === void 0 ? void 0 : run.id) !== (current_run === null || current_run === void 0 ? void 0 : current_run.id) && (run === null || run === void 0 ? void 0 : run.pull_requests[0].id) === firstPr.id && (run === null || run === void 0 ? void 0 : run.status) !== "completed") {
                         return true;
