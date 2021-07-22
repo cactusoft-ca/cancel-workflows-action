@@ -80,6 +80,10 @@ async function main() {
           if(current_run.pull_requests.length === 0) return;
           const firstPr = current_run.pull_requests[0];
 
+          if(!run) return;
+          if(!run.pull_requests) return;
+          if(run.pull_requests.length === 0) return;
+
           console.log(`current_run.pull_requests ${JSON.stringify(firstPr)}`)
 
           if(run?.id !== current_run?.id &&  run?.pull_requests[0].id === firstPr.id && run?.status !== "completed"){
