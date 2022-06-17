@@ -67,6 +67,8 @@ function main() {
         core.debug(`${{ eventName, sha, headSha, branch, owner, repo, GITHUB_RUN_ID }}`);
         const token = core.getInput('github_token', { required: true });
         const workflow_id = core.getInput('workflow_id', { required: false });
+        const wait_for_job = core.getInput('wait_for_job', { required: false });
+        core.debug(`wait_for_job ${wait_for_job}`);
         const ignore_sha = core.getInput('ignore_sha', { required: false }) === 'true';
         core.debug(`Found token: ${token ? 'yes' : 'no'}`);
         const workflow_ids = [];
@@ -138,7 +140,12 @@ function main() {
                     return jobData.jobs;
                 })));
                 for (const { id: runningWorkflowId, head_sha, status, html_url } of runningWorkflows) {
-                    core.debug(`Canceling run: ${{ id: runningWorkflowId, head_sha, status, html_url }}`);
+                    core.debug(`Canceling run: ${{
+                        id: runningWorkflowId,
+                        head_sha,
+                        status,
+                        html_url
+                    }}`);
                     const res = yield octokit.actions.cancelWorkflowRun({
                         owner,
                         repo,
