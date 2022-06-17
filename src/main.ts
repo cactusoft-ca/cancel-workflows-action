@@ -123,11 +123,38 @@ async function main() {
               repo,
               run_id: run.id
             })
-            core.debug(`Jobs status from running workflows: ${JSON.stringify(jobData.jobs.map(job => ({ jobName: job.name, jobStatus: job.status })))}`)
+            core.debug(`Jobs status from running workflows: ${JSON.stringify(jobData.jobs.filter(job => job.name === wait_for_job).map(job => ({ jobName: job.name, jobStatus: job.status })))}`)
             // JSON.stringify(jobData.jobs.filter(job => job.name === wait_for_job))
             return jobData.jobs
           })
         )
+
+        // get all jobs that are in progress with job name equals de wait_for_job and that are in_progress
+        const jobToCancel = jobs.reduce((acc, cur) => {
+          return acc.concat(cur.filter(job => job.name === wait_for_job && job.status === 'in_progress'))
+        }
+          , [])[0]
+
+
+        if (jobToCancel) {
+          let jobStatus = jobToCancel.status
+          while (jobStatus === 'in_progress') {
+            core.debug(`Waiting for job ${jobToCancel.id} to complete`)
+
+            const {
+              data: jobData
+            } = await octokit.actions.getJobForWorkflowRun({
+              owner,
+              repo,
+              job_id: jobToCancel.id
+            })
+
+            jobStatus = jobData.status
+            core.debug(`Job ${jobData.id} status: ${jobData.status}`)
+          }
+
+          core.debug(`Job ${wait_for_job} completed`)
+        }
 
         for (const {
           id: runningWorkflowId,
@@ -143,17 +170,17 @@ async function main() {
               html_url
             })}`
           )
-          const res = await octokit.actions.cancelWorkflowRun({
-            owner,
-            repo,
-            run_id: runningWorkflowId
-          })
+          // const res = await octokit.actions.cancelWorkflowRun({
+          //   owner,
+          //   repo,
+          //   run_id: runningWorkflowId
+          // })
 
-          core.debug(
-            `Cancel run ${runningWorkflowId} responded with status ${JSON.stringify(
-              res
-            )}`
-          )
+          // core.debug(
+          //   `Cancel run ${runningWorkflowId} responded with status ${JSON.stringify(
+          //     res
+          //   )}`
+          // )
         }
       } catch (e) {
         const msg = e.message || e
