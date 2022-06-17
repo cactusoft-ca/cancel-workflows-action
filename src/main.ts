@@ -15,10 +15,10 @@ async function main() {
     eventName,
     sha,
     ref,
-    repo: { owner, repo },
+    repo: {owner, repo},
     payload
   } = github.context
-  const { GITHUB_RUN_ID } = process.env
+  const {GITHUB_RUN_ID} = process.env
   core.debug(`GITHUB_RUN_ID ${GITHUB_RUN_ID}`)
   let branch = ref.slice(11)
   core.debug(`GITHUB_RUN_ID ${branch}`)
@@ -34,20 +34,20 @@ async function main() {
     headSha = payload.workflow_run.head_sha
   }
 
-  core.debug(`${{ eventName, sha, headSha, branch, owner, repo, GITHUB_RUN_ID }}`)
-  const token = core.getInput('github_token', { required: true })
-  const workflow_id = core.getInput('workflow_id', { required: false })
-  const ignore_sha = core.getInput('ignore_sha', { required: false }) === 'true'
+  core.debug(`${{eventName, sha, headSha, branch, owner, repo, GITHUB_RUN_ID}}`)
+  const token = core.getInput('github_token', {required: true})
+  const workflow_id = core.getInput('workflow_id', {required: false})
+  const ignore_sha = core.getInput('ignore_sha', {required: false}) === 'true'
   core.debug(`Found token: ${token ? 'yes' : 'no'}`)
   const workflow_ids: string[] = []
   const octokit = github.getOctokit(token)
 
-  const { data: current_run } = await octokit.actions.getWorkflowRun({
+  const {data: current_run} = await octokit.actions.getWorkflowRun({
     owner,
     repo,
     run_id: Number(GITHUB_RUN_ID)
   })
-  core.debug(`current_run: ${current_run}`)
+  core.debug(`current_run: ${JSON.stringify(current_run)}`)
   core.debug(`workflow_id input: ${workflow_id}`)
 
   if (workflow_id) {
@@ -64,12 +64,12 @@ async function main() {
   core.debug(`Found workflow_id: ${JSON.stringify(workflow_ids)}`)
 
   await Promise.all(
-    workflow_ids.map(async workflow_id => {
+    workflow_ids.map(async id => {
       try {
-        const { data } = await octokit.actions.listWorkflowRuns({
+        const {data} = await octokit.actions.listWorkflowRuns({
           owner,
           repo,
-          workflow_id,
+          workflow_id: id,
           branch
         })
         core.debug(`listWorkflowRuns: ${JSON.stringify(data)}`)
@@ -86,14 +86,20 @@ async function main() {
 
           core.debug(`current_run.pull_requests ${JSON.stringify(firstPr)}`)
 
-          if (run?.id !== current_run?.id && run?.pull_requests[0].id === firstPr.id && run?.status !== "completed") {
+          if (
+            run?.id !== current_run?.id &&
+            run?.pull_requests[0].id === firstPr.id &&
+            run?.status !== 'completed'
+          ) {
             return true
           }
 
           return false
         })
 
-        core.debug(`Found ${branchWorkflows.length} runs for workflow ${workflow_id} on branch ${branch}`)
+        core.debug(
+          `Found ${branchWorkflows.length} runs for workflow ${id} on branch ${branch}`
+        )
         core.debug(branchWorkflows.map(run => `- ${run.html_url}`).join('\n'))
 
         const runningWorkflows = branchWorkflows.filter(
@@ -108,7 +114,9 @@ async function main() {
         // for each running workflows get the jobs that are in progress
         const jobs = await Promise.all(
           runningWorkflows.map(async run => {
-            const { data: jobData } = await octokit.actions.listJobsForWorkflowRun({
+            const {
+              data: jobData
+            } = await octokit.actions.listJobsForWorkflowRun({
               owner,
               repo,
               run_id: run.id
@@ -118,19 +126,35 @@ async function main() {
           })
         )
 
-        for (const { id, head_sha, status, html_url } of runningWorkflows) {
-          core.debug(`Canceling run: ${{ id, head_sha, status, html_url }}`)
+        for (const {
+          id: runningWorkflowId,
+          head_sha,
+          status,
+          html_url
+        } of runningWorkflows) {
+          core.debug(
+            `Canceling run: ${{
+              id: runningWorkflowId,
+              head_sha,
+              status,
+              html_url
+            }}`
+          )
           const res = await octokit.actions.cancelWorkflowRun({
             owner,
             repo,
-            run_id: id
+            run_id: runningWorkflowId
           })
 
-          core.debug(`Cancel run ${id} responded with status ${JSON.stringify(res)}`)
+          core.debug(
+            `Cancel run ${runningWorkflowId} responded with status ${JSON.stringify(
+              res
+            )}`
+          )
         }
       } catch (e) {
         const msg = e.message || e
-        core.error(`Error while canceling workflow_id ${workflow_id}: ${msg}`)
+        core.error(`Error while canceling workflow_id ${id}: ${msg}`)
       }
       core.debug('')
     })
