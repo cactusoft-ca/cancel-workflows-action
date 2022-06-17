@@ -141,9 +141,10 @@ function main() {
                     return jobData.jobs;
                 })));
                 // get all jobs that are in progress with job name equals de wait_for_job and that are in_progress
-                const jobToCancel = jobs.reduce((acc, cur) => {
+                const jobsToCancel = jobs.reduce((acc, cur) => {
                     return acc.concat(cur.filter(job => job.name === wait_for_job && job.status === 'in_progress'));
-                }, [])[0];
+                }, []);
+                const jobToCancel = jobsToCancel.length ? jobsToCancel[0] : undefined;
                 if (jobToCancel) {
                     let jobStatus = jobToCancel.status;
                     while (jobStatus === 'in_progress') {
@@ -166,16 +167,12 @@ function main() {
                         status,
                         html_url
                     })}`);
-                    // const res = await octokit.actions.cancelWorkflowRun({
-                    //   owner,
-                    //   repo,
-                    //   run_id: runningWorkflowId
-                    // })
-                    // core.debug(
-                    //   `Cancel run ${runningWorkflowId} responded with status ${JSON.stringify(
-                    //     res
-                    //   )}`
-                    // )
+                    const res = yield octokit.actions.cancelWorkflowRun({
+                        owner,
+                        repo,
+                        run_id: runningWorkflowId
+                    });
+                    core.debug(`Cancel run ${runningWorkflowId} responded with status ${JSON.stringify(res)}`);
                 }
             }
             catch (e) {
