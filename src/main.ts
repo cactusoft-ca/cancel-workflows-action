@@ -74,7 +74,7 @@ async function main() {
           workflow_id: id,
           branch
         })
-        core.debug(`listWorkflowRuns: ${JSON.stringify(data)}`)
+        core.debug(`Workflow runs (${data.total_count}): ${JSON.stringify(data.workflow_runs.map(m => ({ id: m.id, conclusion: m.conclusion })))}`)
 
         const branchWorkflows = data.workflow_runs.filter(function (run) {
           if (!current_run) return
@@ -111,7 +111,7 @@ async function main() {
             new Date(run.created_at) < new Date(current_run.created_at)
         )
 
-        core.debug(`%cwith ${runningWorkflows.length} runs to cancel.`)
+        core.debug(`with ${runningWorkflows.length} runs to cancel.`)
 
         // for each running workflows get the jobs that are in progress
         const jobs = await Promise.all(

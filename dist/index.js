@@ -100,7 +100,7 @@ function main() {
                     workflow_id: id,
                     branch
                 });
-                core.debug(`listWorkflowRuns: ${JSON.stringify(data)}`);
+                core.debug(`Workflow runs (${data.total_count}): ${JSON.stringify(data.workflow_runs.map(m => ({ id: m.id, conclusion: m.conclusion })))}`);
                 const branchWorkflows = data.workflow_runs.filter(function (run) {
                     if (!current_run)
                         return;
@@ -128,7 +128,7 @@ function main() {
                 const runningWorkflows = branchWorkflows.filter(run => (ignore_sha || run.head_sha !== headSha) &&
                     run.status !== 'completed' &&
                     new Date(run.created_at) < new Date(current_run.created_at));
-                core.debug(`%cwith ${runningWorkflows.length} runs to cancel.`);
+                core.debug(`with ${runningWorkflows.length} runs to cancel.`);
                 // for each running workflows get the jobs that are in progress
                 const jobs = yield Promise.all(runningWorkflows.map((run) => __awaiter(this, void 0, void 0, function* () {
                     const { data: jobData } = yield octokit.actions.listJobsForWorkflowRun({
