@@ -136,7 +136,7 @@ function main() {
                         repo,
                         run_id: run.id
                     });
-                    core.debug(`listJobsForWorkflowRun: ${JSON.stringify(jobData)}`);
+                    core.debug(`listJobsForWorkflowRun: ${JSON.stringify(jobData.jobs.filter(job => job.name === wait_for_job))}`);
                     return jobData.jobs;
                 })));
                 for (const { id: runningWorkflowId, head_sha, status, html_url } of runningWorkflows) {

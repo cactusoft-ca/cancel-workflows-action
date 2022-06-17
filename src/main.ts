@@ -15,10 +15,10 @@ async function main() {
     eventName,
     sha,
     ref,
-    repo: {owner, repo},
+    repo: { owner, repo },
     payload
   } = github.context
-  const {GITHUB_RUN_ID} = process.env
+  const { GITHUB_RUN_ID } = process.env
   core.debug(`GITHUB_RUN_ID ${GITHUB_RUN_ID}`)
   let branch = ref.slice(11)
   core.debug(`GITHUB_RUN_ID ${branch}`)
@@ -34,17 +34,17 @@ async function main() {
     headSha = payload.workflow_run.head_sha
   }
 
-  core.debug(`${{eventName, sha, headSha, branch, owner, repo, GITHUB_RUN_ID}}`)
-  const token = core.getInput('github_token', {required: true})
-  const workflow_id = core.getInput('workflow_id', {required: false})
-  const wait_for_job = core.getInput('wait_for_job', {required: false})
+  core.debug(`${{ eventName, sha, headSha, branch, owner, repo, GITHUB_RUN_ID }}`)
+  const token = core.getInput('github_token', { required: true })
+  const workflow_id = core.getInput('workflow_id', { required: false })
+  const wait_for_job = core.getInput('wait_for_job', { required: false })
   core.debug(`wait_for_job ${wait_for_job}`)
-  const ignore_sha = core.getInput('ignore_sha', {required: false}) === 'true'
+  const ignore_sha = core.getInput('ignore_sha', { required: false }) === 'true'
   core.debug(`Found token: ${token ? 'yes' : 'no'}`)
   const workflow_ids: string[] = []
   const octokit = github.getOctokit(token)
 
-  const {data: current_run} = await octokit.actions.getWorkflowRun({
+  const { data: current_run } = await octokit.actions.getWorkflowRun({
     owner,
     repo,
     run_id: Number(GITHUB_RUN_ID)
@@ -68,7 +68,7 @@ async function main() {
   await Promise.all(
     workflow_ids.map(async id => {
       try {
-        const {data} = await octokit.actions.listWorkflowRuns({
+        const { data } = await octokit.actions.listWorkflowRuns({
           owner,
           repo,
           workflow_id: id,
@@ -123,7 +123,7 @@ async function main() {
               repo,
               run_id: run.id
             })
-            core.debug(`listJobsForWorkflowRun: ${JSON.stringify(jobData)}`)
+            core.debug(`listJobsForWorkflowRun: ${JSON.stringify(jobData.jobs.filter(job => job.name === wait_for_job))}`)
             return jobData.jobs
           })
         )
