@@ -2,12 +2,15 @@ name: 'cancel-workflows-action'
 description: 'Action to cancel workflows'
 author: 'cactusoft-ca'
 inputs:
-  github_token:  # github token
+  github_token: # github token
     description: 'Token to authentify to github'
     required: true
-  workflow_id:  # id of input
+  workflow_id: # id of input
     description: 'The id of workflow or filename'
     required: true
+  wait_for_job:
+    description: 'Wait for job to finish'
+    required: false
 runs:
   using: 'node12'
   main: 'dist/index.js'
