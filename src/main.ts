@@ -24,8 +24,8 @@ async function main() {
   core.debug(`GITHUB_RUN_ID ${branch}`)
   let headSha = sha
   core.debug(`headSha ${headSha}`)
-  core.debug(`payload.pull_request ${JSON.stringify(payload.pull_request)}`)
-  core.debug(`payload.workflow_run ${JSON.stringify(payload.workflow_run)}`)
+  // core.debug(`payload.pull_request ${JSON.stringify(payload.pull_request)}`)
+  // core.debug(`payload.workflow_run ${JSON.stringify(payload.workflow_run)}`)
   if (payload.pull_request) {
     branch = payload.pull_request.head.ref
     headSha = payload.pull_request.head.sha
@@ -49,7 +49,7 @@ async function main() {
     repo,
     run_id: Number(GITHUB_RUN_ID)
   })
-  core.debug(`current_run: ${JSON.stringify(current_run)}`)
+  core.debug(`current_run: ${JSON.stringify({ current_run_id: current_run.id })}`)
   core.debug(`workflow_id input: ${workflow_id}`)
 
   if (workflow_id) {
@@ -74,7 +74,7 @@ async function main() {
           workflow_id: id,
           branch
         })
-        core.debug(`Workflow runs (${data.total_count}): ${JSON.stringify(data.workflow_runs.map(m => ({ id: m.id, conclusion: m.conclusion })))}`)
+        core.debug(`Workflow runs (${data.total_count}): ${JSON.stringify(data.workflow_runs.map(m => ({ id: m.id, conclusion: m.conclusion, status: m.status })))}`)
 
         const branchWorkflows = data.workflow_runs.filter(function (run) {
           if (!current_run) return
@@ -86,7 +86,7 @@ async function main() {
           if (!run.pull_requests) return
           if (run.pull_requests.length === 0) return
 
-          core.debug(`current_run.pull_requests ${JSON.stringify(firstPr)}`)
+          // core.debug(`current_run.pull_requests ${JSON.stringify(firstPr)}`)
 
           if (
             run?.id !== current_run?.id &&
@@ -123,7 +123,8 @@ async function main() {
               repo,
               run_id: run.id
             })
-            core.debug(`listJobsForWorkflowRun: ${JSON.stringify(jobData.jobs.filter(job => job.name === wait_for_job))}`)
+            core.debug(`Jobs status from running workflows: ${JSON.stringify(jobData.jobs.map(job => ({ jobName: job.name, jobStatus: job.status })))}`)
+            // JSON.stringify(jobData.jobs.filter(job => job.name === wait_for_job))
             return jobData.jobs
           })
         )
@@ -135,12 +136,12 @@ async function main() {
           html_url
         } of runningWorkflows) {
           core.debug(
-            `Canceling run: ${{
+            `Canceling run: ${JSON.stringify({
               id: runningWorkflowId,
               head_sha,
               status,
               html_url
-            }}`
+            })}`
           )
           const res = await octokit.actions.cancelWorkflowRun({
             owner,

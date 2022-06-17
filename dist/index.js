@@ -54,8 +54,8 @@ function main() {
         core.debug(`GITHUB_RUN_ID ${branch}`);
         let headSha = sha;
         core.debug(`headSha ${headSha}`);
-        core.debug(`payload.pull_request ${JSON.stringify(payload.pull_request)}`);
-        core.debug(`payload.workflow_run ${JSON.stringify(payload.workflow_run)}`);
+        // core.debug(`payload.pull_request ${JSON.stringify(payload.pull_request)}`)
+        // core.debug(`payload.workflow_run ${JSON.stringify(payload.workflow_run)}`)
         if (payload.pull_request) {
             branch = payload.pull_request.head.ref;
             headSha = payload.pull_request.head.sha;
@@ -78,7 +78,7 @@ function main() {
             repo,
             run_id: Number(GITHUB_RUN_ID)
         });
-        core.debug(`current_run: ${JSON.stringify(current_run)}`);
+        core.debug(`current_run: ${JSON.stringify({ current_run_id: current_run.id })}`);
         core.debug(`workflow_id input: ${workflow_id}`);
         if (workflow_id) {
             // The user provided one or more workflow id
@@ -100,7 +100,7 @@ function main() {
                     workflow_id: id,
                     branch
                 });
-                core.debug(`Workflow runs (${data.total_count}): ${JSON.stringify(data.workflow_runs.map(m => ({ id: m.id, conclusion: m.conclusion })))}`);
+                core.debug(`Workflow runs (${data.total_count}): ${JSON.stringify(data.workflow_runs.map(m => ({ id: m.id, conclusion: m.conclusion, status: m.status })))}`);
                 const branchWorkflows = data.workflow_runs.filter(function (run) {
                     if (!current_run)
                         return;
@@ -115,7 +115,7 @@ function main() {
                         return;
                     if (run.pull_requests.length === 0)
                         return;
-                    core.debug(`current_run.pull_requests ${JSON.stringify(firstPr)}`);
+                    // core.debug(`current_run.pull_requests ${JSON.stringify(firstPr)}`)
                     if ((run === null || run === void 0 ? void 0 : run.id) !== (current_run === null || current_run === void 0 ? void 0 : current_run.id) &&
                         (run === null || run === void 0 ? void 0 : run.pull_requests[0].id) === firstPr.id &&
                         (run === null || run === void 0 ? void 0 : run.status) !== 'completed') {
@@ -136,16 +136,17 @@ function main() {
                         repo,
                         run_id: run.id
                     });
-                    core.debug(`listJobsForWorkflowRun: ${JSON.stringify(jobData.jobs.filter(job => job.name === wait_for_job))}`);
+                    core.debug(`Jobs status from running workflows: ${JSON.stringify(jobData.jobs.map(job => ({ jobName: job.name, jobStatus: job.status })))}`);
+                    // JSON.stringify(jobData.jobs.filter(job => job.name === wait_for_job))
                     return jobData.jobs;
                 })));
                 for (const { id: runningWorkflowId, head_sha, status, html_url } of runningWorkflows) {
-                    core.debug(`Canceling run: ${{
+                    core.debug(`Canceling run: ${JSON.stringify({
                         id: runningWorkflowId,
                         head_sha,
                         status,
                         html_url
-                    }}`);
+                    })}`);
                     const res = yield octokit.actions.cancelWorkflowRun({
                         owner,
                         repo,
