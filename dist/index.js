@@ -148,6 +148,7 @@ function main() {
                     let jobStatus = jobToCancel.status;
                     while (jobStatus === 'in_progress') {
                         core.debug(`Waiting for job ${jobToCancel.id} to complete`);
+                        yield new Promise(resolve => setTimeout(resolve, 2000));
                         const { data: jobData } = yield octokit.actions.getJobForWorkflowRun({
                             owner,
                             repo,

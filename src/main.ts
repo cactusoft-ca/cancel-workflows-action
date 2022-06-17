@@ -140,6 +140,7 @@ async function main() {
           let jobStatus = jobToCancel.status
           while (jobStatus === 'in_progress') {
             core.debug(`Waiting for job ${jobToCancel.id} to complete`)
+            await new Promise(resolve => setTimeout(resolve, 2000))
 
             const {
               data: jobData
